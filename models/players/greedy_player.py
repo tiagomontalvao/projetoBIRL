@@ -8,8 +8,6 @@ class GreedyPlayer:
 		white_score, black_score = board.score()
 		valid_moves = board.valid_moves(self.color)
 
-		print len(valid_moves)
-
 		# Player apenas chamado tendo lista com pelo menos um elemento
 		choosen_move = valid_moves[0]
 		maxi = -1
@@ -20,7 +18,7 @@ class GreedyPlayer:
 			test_white_score, test_black_score = test_board.score()
 			count = 0
 
-			if self.color == 'o':
+			if self.color == board.WHITE:
 				count += (test_white_score - white_score)
 			else:
 				count += (test_black_score - black_score)

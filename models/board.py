@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 from models.move import Move
 import copy
 
 class Board:
-  EMPTY, BLACK, WHITE, OUTER = '.', '@', 'o', '?'
+  EMPTY, BLACK, WHITE, OUTER = '.', '□', '■', '?'
 
   UP, DOWN, LEFT, RIGHT = [-1, 0], [1, 0], [0, -1], [0, 1]
   UP_RIGHT, DOWN_RIGHT, DOWN_LEFT, UP_LEFT = [-1, 1], [1, 1], [1, -1], [-1, -1]

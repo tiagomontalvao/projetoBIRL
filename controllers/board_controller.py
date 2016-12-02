@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 from models.players.random_player import RandomPlayer
 from models.players.corner_player import CornerPlayer
 from views.console_board_view import ConsoleBoardView
 from models.board import Board
 
 import glob
+import os
 
 class BoardController:
   def __init__(self):
@@ -20,6 +22,7 @@ class BoardController:
 
     finish_game = 0
 
+    os.system('clear')
     self.view.update_view()
 
     while finish_game != 2:
@@ -28,6 +31,7 @@ class BoardController:
       print 'Jogador: ' + atual_color
       if self.board.valid_moves(atual_color).__len__() > 0:
         self.board.play(self.atual_player.play(self.board.get_clone()), atual_color)
+        os.system('clear')
         self.view.update_view()
         finish_game = 0
       else:
