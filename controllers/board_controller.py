@@ -62,7 +62,7 @@ class BoardController:
 
   def _select_player(self, color):
     players = glob.glob('./models/players/*_player.py')
-    print 'Selecione um dos players abaixo para ser o jogador '+color
+    print 'Selecione um dos players abaixo para ser o jogador '+ color
 
     for idx, player in enumerate(players):
       print idx.__str__() + " - " + player
@@ -70,5 +70,9 @@ class BoardController:
     player = raw_input("Digite o numero do player que voce deseja: ")
     module_globals = {}
     execfile(players[int(player)], module_globals)
+    
+
     print module_globals.keys()
-    return module_globals[module_globals.keys()[len(module_globals.keys()) - 1]](color)
+
+
+    return module_globals[      module_globals.keys()[len(module_globals.keys()) - 1]            ]            (color)

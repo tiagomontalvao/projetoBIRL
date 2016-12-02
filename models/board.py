@@ -25,6 +25,9 @@ class Board:
     else:
       self.board = copy.deepcopy(board)
 
+  def __getitem__(self, i):
+    return self.board[i]
+
   def play(self, move, color):
     if (color == Board.BLACK) or (color == Board.WHITE):
       self.board[move.x][move.y] = color

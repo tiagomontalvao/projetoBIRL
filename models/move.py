@@ -9,6 +9,10 @@ class Move:
     ret += self.y.__str__()
     return ret
 
+  def __getitem__(self, i):
+    if i == 0: return x
+    if i == 1: return y
+
   def __eq__(self, other):
     return (self and other and self.x == other.x and self.y == other.y)
 
