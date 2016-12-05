@@ -4,18 +4,23 @@ class MinimaxPlayer:
 	def __init__(self, color):
 		self.color = color
 
-
 	def evaluate_board(self, board):
-		Inf = 99999999
+		a = -50
+		b = 20
+		c = -25
+		d = 10
+		e = 5
+		f = 1
+		g = 99999999
 		evaluation = [[0,   0,   0,   0,   0,   0,   0,   0,   0],
-					  [0, Inf, -50,  20,  20,  20,  20, -50, Inf],
-					  [0, -50,-Inf, -25, -25, -25, -25,-Inf, -50],
-					  [0,  20, -25,  10,   5,   5,  10, -25,  20],
-					  [0,  20, -25,   5,   1,   1,   5, -25,  20],
-					  [0,  20, -25,   5,   1,   1,   5, -25,  20],
-					  [0,  20, -25,  10,   5,   5,  10, -25,  20],
-					  [0, -50,-Inf, -25, -25, -25, -25,-Inf, -50],
-					  [0, Inf, -50,  20,  20,  20,  20, -50, Inf]]
+					  [0,   g,   a,   b,   b,   b,   b,   a,   g],
+					  [0,   a,   g,   c,   c,   c,   c,   g,   a],
+					  [0,   b,   c,   d,   e,   e,   d,   c,   b],
+					  [0,   b,   c,   e,   f,   f,   e,   c,   b],
+					  [0,   b,   c,   e,   f,   f,   e,   c,   b],
+					  [0,   b,   c,   d,   e,   e,   d,   c,   b],
+					  [0,   a,   g,   c,   c,   c,   c,   g,   a],
+					  [0,   g,   a,   b,   b,   b,   b,   a,   g]]
 
 		opponent = self.color
 		if self.color == board.BLACK:
@@ -33,7 +38,6 @@ class MinimaxPlayer:
 
 		return board_score
 
-
 	def min_play(self, board, level):
 		from models.move import Move
 		if level == 3:
@@ -44,7 +48,6 @@ class MinimaxPlayer:
 		if not valid_moves:
 			return [Move(0,0), float("inf")]
 
-		# Player apenas chamado tendo lista com pelo menos um elemento
 		best_move = valid_moves[0]
 		best_score = float("inf")
 
@@ -68,14 +71,7 @@ class MinimaxPlayer:
 		if not valid_moves:
 			return [Move(0,0), float("-inf")]
 
-		# print type(valid_moves)
-		# for i in range(len(valid_moves)):
-		# 	print i, valid_moves[i]
-
-
-		# Player apenas chamado tendo lista com pelo menos um elemento
 		best_move = valid_moves[0]
-
 		best_score = float("-inf")
 
 		for move in valid_moves:

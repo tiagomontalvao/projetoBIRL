@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from models.players.random_player import RandomPlayer
 from models.players.corner_player import CornerPlayer
 from views.console_board_view import ConsoleBoardView
@@ -22,16 +21,17 @@ class BoardController:
 
     finish_game = 0
 
-    os.system('clear')
+    # os.system('clear')
     self.view.update_view()
 
     while finish_game != 2:
       raw_input("")
       atual_color = self.atual_player.color
       print 'Jogador: ' + atual_color
+      print self.atual_player.stable_pieces(self.board)
       if self.board.valid_moves(atual_color).__len__() > 0:
         self.board.play(self.atual_player.play(self.board.get_clone()), atual_color)
-        os.system('clear')
+        # os.system('clear')
         self.view.update_view()
         finish_game = 0
       else:
@@ -70,9 +70,5 @@ class BoardController:
     player = raw_input("Digite o numero do player que voce deseja: ")
     module_globals = {}
     execfile(players[int(player)], module_globals)
-    
-
     print module_globals.keys()
-
-
-    return module_globals[      module_globals.keys()[len(module_globals.keys()) - 1]            ]            (color)
+    return module_globals[module_globals.keys()[len(module_globals.keys()) - 1]](color)

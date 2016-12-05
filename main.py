@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from controllers.board_controller import BoardController
 from models.move                  import Move
 from models.board                 import Board

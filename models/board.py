@@ -4,7 +4,6 @@ import copy
 
 class Board:
   EMPTY, BLACK, WHITE, OUTER = '.', '□', '■', '?'
-
   UP, DOWN, LEFT, RIGHT = [-1, 0], [1, 0], [0, -1], [0, 1]
   UP_RIGHT, DOWN_RIGHT, DOWN_LEFT, UP_LEFT = [-1, 1], [1, 1], [1, -1], [-1, -1]
 
@@ -76,7 +75,6 @@ class Board:
           black += 1
 
     return [white, black]
-
 
   def _squares(self):
     return [i for i in xrange(11, 89) if 1 <= (i % 10) <= 8]
