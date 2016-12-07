@@ -1,4 +1,3 @@
-
 class AlphaBetaPlayer:
 	def __init__(self, color):
 		self.color = color
@@ -14,15 +13,16 @@ class AlphaBetaPlayer:
 		h = 20
 		i = -40
 		# testar depois colocando os valores direto na matriz
-		evaluation = [[0,  0,  0,  0,  0,  0,  0,  0,  0],
-					  [0,  g,  a,  h,  b,  b,  h,  a,  g],
-					  [0,  a,  i,  c,  c,  c,  c,  i,  a],
-					  [0,  h,  c,  d,  e,  e,  d,  c,  h],
-					  [0,  b,  c,  e,  f,  f,  e,  c,  b],
-					  [0,  b,  c,  e,  f,  f,  e,  c,  b],
-					  [0,  h,  c,  d,  e,  e,  d,  c,  h],
-					  [0,  a,  i,  c,  c,  c,  c,  i,  a],
-					  [0,  g,  a,  h,  b,  b,  h,  a,  g]]
+		evaluation = [[0, 0, 0, 0, 0, 0, 0, 0, 0],
+					  [0, g, a, h, b, b, h, a, g],
+					  [0, a, i, c, c, c, c, i, a],
+					  [0, h, c, d, e, e, d, c, h],
+					  [0, b, c, e, f, f, e, c, b],
+					  [0, b, c, e, f, f, e, c, b],
+					  [0, h, c, d, e, e, d, c, h],
+					  [0, a, i, c, c, c, c, i, a],
+					  [0, g, a, h, b, b, h, a, g]]
+
 
 		opponent = board._opponent(player)
 
@@ -52,15 +52,14 @@ class AlphaBetaPlayer:
 
 		return return_value
 
-
 	def alphabeta(self, player, board, alpha, beta, depth):
 
 		if depth == 0:
 			return self.evaluate_board(board, player), None
 
 		opponent = board._opponent(player)
-
 		valid_moves = board.valid_moves(player)
+
 		if not valid_moves:
 			if not board.valid_moves(opponent):
 				return self.final_value(board, player), None
@@ -84,6 +83,7 @@ class AlphaBetaPlayer:
 		
 		score = board.score()
 		empty_squares = 64 - sum(score)
+
 		if empty_squares == 60:
 			return self.random.choice(board.valid_moves(self.color))
 
@@ -94,5 +94,7 @@ class AlphaBetaPlayer:
 			print "AGORA"
 			depth = 20
 		move = self.alphabeta(self.color, board, float('-inf'), float('inf'), depth)
+		if move[0] == float('inf'):
+			print "ate a prox, loser"
 		print move[0]
 		return move[1]
