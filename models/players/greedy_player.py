@@ -1,5 +1,3 @@
-import random
-
 class GreedyPlayer:
 	def __init__(self, color):
 		self.color = color
@@ -9,7 +7,7 @@ class GreedyPlayer:
 		valid_moves = board.valid_moves(self.color)
 
 		# Player apenas chamado tendo lista com pelo menos um elemento
-		choosen_move = valid_moves[0]
+		chosen_move = valid_moves[0]
 		maxi = -1
 
 		for move in valid_moves:
@@ -25,6 +23,6 @@ class GreedyPlayer:
 
 			if count > maxi:
 				maxi = count
-				choosen_move = move
+				chosen_move = move
 
-		return choosen_move
+		return chosen_move

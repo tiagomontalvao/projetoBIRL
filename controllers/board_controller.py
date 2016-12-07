@@ -21,17 +21,18 @@ class BoardController:
 
     finish_game = 0
 
-    # os.system('clear')
+    os.system('clear')
     self.view.update_view()
 
     while finish_game != 2:
       raw_input("")
       atual_color = self.atual_player.color
       print 'Jogador: ' + atual_color
-      print self.atual_player.stable_pieces(self.board)
+      # print self.board.valid_moves(atual_color).__len__()
+      # print self.atual_player.stable_pieces(self.board)
       if self.board.valid_moves(atual_color).__len__() > 0:
         self.board.play(self.atual_player.play(self.board.get_clone()), atual_color)
-        # os.system('clear')
+        os.system('clear')
         self.view.update_view()
         finish_game = 0
       else:

@@ -1,26 +1,26 @@
-import random
-
 class MinimaxPlayer:
 	def __init__(self, color):
 		self.color = color
 
 	def evaluate_board(self, board):
-		a = -50
-		b = 20
-		c = -25
-		d = 10
-		e = 5
-		f = 1
-		g = 99999999
-		evaluation = [[0,   0,   0,   0,   0,   0,   0,   0,   0],
-					  [0,   g,   a,   b,   b,   b,   b,   a,   g],
-					  [0,   a,   g,   c,   c,   c,   c,   g,   a],
-					  [0,   b,   c,   d,   e,   e,   d,   c,   b],
-					  [0,   b,   c,   e,   f,   f,   e,   c,   b],
-					  [0,   b,   c,   e,   f,   f,   e,   c,   b],
-					  [0,   b,   c,   d,   e,   e,   d,   c,   b],
-					  [0,   a,   g,   c,   c,   c,   c,   g,   a],
-					  [0,   g,   a,   b,   b,   b,   b,   a,   g]]
+		a = -20
+		b = 5
+		c = -5
+		d = 15
+		e = 3
+		f = 2
+		g = 120
+		h = 20
+		i = -40
+		evaluation = [[0,  0,  0,  0,  0,  0,  0,  0,  0],
+					  [0,  g,  a,  h,  b,  b,  h,  a,  g],
+					  [0,  a,  i,  c,  c,  c,  c,  i,  a],
+					  [0,  h,  c,  d,  e,  e,  d,  c,  h],
+					  [0,  b,  c,  e,  f,  f,  e,  c,  b],
+					  [0,  b,  c,  e,  f,  f,  e,  c,  b],
+					  [0,  h,  c,  d,  e,  e,  d,  c,  h],
+					  [0,  a,  i,  c,  c,  c,  c,  i,  a],
+					  [0,  g,  a,  h,  b,  b,  h,  a,  g]]
 
 		opponent = self.color
 		if self.color == board.BLACK:
@@ -41,12 +41,12 @@ class MinimaxPlayer:
 	def min_play(self, board, level):
 		from models.move import Move
 		if level == 3:
-			return [Move(0,0), -self.evaluate_board(board)]
+			return None, -self.evaluate_board(board)
 
 		valid_moves = board.valid_moves(self.color)
 
 		if not valid_moves:
-			return [Move(0,0), float("inf")]
+			return None, float("inf")
 
 		best_move = valid_moves[0]
 		best_score = float("inf")
@@ -59,17 +59,17 @@ class MinimaxPlayer:
 				best_move = move
 				best_score = score_max
 
-		return [best_move, best_score]
+		return best_move, best_score
 
 	def max_play(self, board, level):
 		from models.move import Move
 		if level == 3:
-			return [Move(0,0), self.evaluate_board(board)]
+			return None, self.evaluate_board(board)
 
 		valid_moves = board.valid_moves(self.color)
 
 		if not valid_moves:
-			return [Move(0,0), float("-inf")]
+			return None, float("-inf")
 
 		best_move = valid_moves[0]
 		best_score = float("-inf")
@@ -82,7 +82,7 @@ class MinimaxPlayer:
 				best_move = move
 				best_score = score_min
 
-		return [best_move, best_score]
+		return best_move, best_score
 
 	def play(self, board):
 		best_move = self.max_play(board, 0)[0]
