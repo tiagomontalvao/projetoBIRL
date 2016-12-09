@@ -28,13 +28,13 @@ class BambamPlayer:
 	# Funcao auxiliar para caminhar a partir de cada corner
 	def get_directions(self, board, corner):
 		if corner == [1,1]:
-			return board.DOWN, board.RIGHT, board.DOWN_RIGHT
+			return board.DOWN, board.RIGHT, board.DOWN_RIGHT, board.UP_RIGHT, board.DOWN_LEFT
 		elif corner == [1,8]:
-			return board.DOWN, board.LEFT, board.DOWN_LEFT
+			return board.DOWN, board.LEFT, board.DOWN_LEFT, board.UP_LEFT, board.DOWN_RIGHT
 		elif corner == [8,1]:
-			return board.UP, board.RIGHT, board.UP_RIGHT
+			return board.UP, board.RIGHT, board.UP_RIGHT, board.DOWN_RIGHT, board.UP_LEFT
 		elif corner == [8,8]:
-			return board.UP, board.LEFT, board.UP_LEFT
+			return board.UP, board.LEFT, board.UP_LEFT, board.DOWN_LEFT, board.UP_RIGHT
 
 	# Retorna posicao (casa + direction)
 	def nova_casa(self, casa, direction):
@@ -50,15 +50,13 @@ class BambamPlayer:
 
 	# Conta quantas pecas estaveis existem em torno de uma quina
 	# Ainda com um pequeno bug
-	def count_stable(self, board, player, corner, checked):
+	def count_stable(self, board, player, corner, is_stable):
 		stable_return = [0, 0]
 
 		# se a quina estiver vazia
 		if board[corner[0]][corner[1]] == board.EMPTY:
 			return stable_return
 
-		# print "corner:", corner
-		
 		# pega direcoes
 		directions = self.get_directions(board, corner)
 
@@ -68,7 +66,7 @@ class BambamPlayer:
 		# indice do jogador com peca na quina: 0 se for quem esta jogando e 1 se for o oponente
 		player = 0 if self.get(board, corner) is player else 1
 
-		# still buggy
+		# variaveis auxiliares
 		casa_diag = corner
 		quantidade_maxima_0 = 10
 		quantidade_maxima_1 = 10
@@ -76,11 +74,14 @@ class BambamPlayer:
 		while self.get(board, casa_diag) == piece and min(quantidade_maxima_0, quantidade_maxima_1) > 1:
 			quantidade_atual_0 = 1
 			quantidade_atual_1 = 1
-			# print "casa_diag:", casa_diag
+			vala = self.get(is_stable, self.nova_casa(casa_diag, directions[3]))
+			valb = self.get(is_stable, self.nova_casa(casa_diag, directions[4]))
+			if not vala and not valb:
+				break
 			# se casa nao foi contada antes, conta e marca como visitada
-			if self.get(checked, casa_diag) == False:
+			if self.get(is_stable, casa_diag) == False:
 				stable_return[player] += 1
-				self.set(checked, casa_diag, True)
+				self.set(is_stable, casa_diag, True)
 
 			# posicoes que serao variadas em cada direcao
 			casa_dir_0 = self.nova_casa(casa_diag, directions[0])
@@ -88,23 +89,75 @@ class BambamPlayer:
 
 			# enquanto a casa for valida, avance na direcao correspondente
 			while self.get(board, casa_dir_0) == piece and quantidade_atual_0 < quantidade_maxima_0 - 2:
-				# print "casa_dir_0:", casa_dir_0
 				quantidade_atual_0 += 1
 				# se casa nao foi contada antes, conta e marca como visitada
-				if self.get(checked, casa_dir_0) == False:
+				if self.get(is_stable, casa_dir_0) == False:
 					stable_return[player] += 1
-					self.set(checked, casa_dir_0, True)
+					self.set(is_stable, casa_dir_0, True)
 				# avanca na direcao correspondente
 				casa_dir_0 = self.nova_casa(casa_dir_0, directions[0])
 
 			# enquanto a casa for valida, avance na direcao correspondente
 			while self.get(board, casa_dir_1) == piece and quantidade_atual_1 < quantidade_maxima_1 - 2:
-				# print "casa_dir_1:", casa_dir_1
 				quantidade_atual_1 += 1
 				# se casa nao foi contada antes, conta e marca como visitada
-				if self.get(checked, casa_dir_1) == False:
+				if self.get(is_stable, casa_dir_1) == False:
 					stable_return[player] += 1
-					self.set(checked, casa_dir_1, True)
+					self.set(is_stable, casa_dir_1, True)
+				# avanca na direcao correspondente
+				casa_dir_1 = self.nova_casa(casa_dir_1, directions[1])
+
+			# atualiza variaveis auxiliares
+			quantidade_maxima_0 = quantidade_atual_0
+			quantidade_maxima_1 = quantidade_atual_1
+
+			# avanca casa da diagonal
+			casa_diag = self.nova_casa(casa_diag, directions[2])
+
+		# segunda passada para cuidar de pecas nao consideradas anteriormente
+		casa_diag = corner
+		quantidade_maxima_0 = 10
+		quantidade_maxima_1 = 10
+		# olha cada casa da diagonal da quina
+		while self.get(board, casa_diag) == piece and min(quantidade_maxima_0, quantidade_maxima_1) > 1:
+			quantidade_atual_0 = 1
+			quantidade_atual_1 = 1
+			vala = self.get(is_stable, self.nova_casa(casa_diag, directions[3]))
+			valb = self.get(is_stable, self.nova_casa(casa_diag, directions[4]))
+			if not vala and not valb:
+				break
+			# se casa nao foi contada antes, conta e marca como visitada
+			if self.get(is_stable, casa_diag) == False:
+				stable_return[player] += 1
+				self.set(is_stable, casa_diag, True)
+
+			# posicoes que serao variadas em cada direcao
+			casa_dir_0 = self.nova_casa(casa_diag, directions[0])
+			casa_dir_1 = self.nova_casa(casa_diag, directions[1])
+
+			# enquanto a casa for valida, avance na direcao correspondente
+			while self.get(board, casa_dir_0) == piece and quantidade_atual_0 < quantidade_maxima_0 - 1:
+				if quantidade_atual_0 == quantidade_maxima_0 - 2:
+					if not self.get(is_stable, self.nova_casa(casa_dir_0, directions[3])):
+						break
+				quantidade_atual_0 += 1
+				# se casa nao foi contada antes, conta e marca como visitada
+				if self.get(is_stable, casa_dir_0) == False:
+					stable_return[player] += 1
+					self.set(is_stable, casa_dir_0, True)
+				# avanca na direcao correspondente
+				casa_dir_0 = self.nova_casa(casa_dir_0, directions[0])
+
+			# enquanto a casa for valida, avance na direcao correspondente
+			while self.get(board, casa_dir_1) == piece and quantidade_atual_1 < quantidade_maxima_1 - 1:
+				if quantidade_atual_1 == quantidade_maxima_1 - 2:
+					if not self.get(is_stable, self.nova_casa(casa_dir_1, directions[4])):
+						break
+				quantidade_atual_1 += 1
+				# se casa nao foi contada antes, conta e marca como visitada
+				if self.get(is_stable, casa_dir_1) == False:
+					stable_return[player] += 1
+					self.set(is_stable, casa_dir_1, True)
 				# avanca na direcao correspondente
 				casa_dir_1 = self.nova_casa(casa_dir_1, directions[1])
 
@@ -121,10 +174,13 @@ class BambamPlayer:
 	# quntas pecas estaveis cada player possui
 	def stable_pieces(self, board, player):
 		player_stable, opponent_stable = 0, 0
-		checked = [[False]*9 for _ in xrange(9)]
+		is_stable = [[True]*10 for _ in xrange(10)]
+		for i in range(1,9):
+			for j in range(1,9):
+				is_stable[i][j] = False
 		corners = [[1,1], [1,8], [8,1], [8,8]]
 		for corner in corners:
-			player_aux, opponent_aux = self.count_stable(board, player, corner, checked)
+			player_aux, opponent_aux = self.count_stable(board, player, corner, is_stable)
 			player_stable += player_aux
 			opponent_stable += opponent_aux
 		return player_stable, opponent_stable
@@ -238,6 +294,8 @@ class BambamPlayer:
 
 	def play(self, board):
 		
+		print self.stable_pieces(board, self.color)
+
 		# calcula quantidade de casas vazias
 		score = board.score()
 		empty_squares = 64 - sum(score)
@@ -247,11 +305,13 @@ class BambamPlayer:
 			return self.random.choice(board.valid_moves(self.color))
 
 		# inicializa profundidade padrao de 4 niveis
-		depth = 4
+		depth = 2
+		# depth = 4
 
 		# se houver poucos movimentos, aumenta a profundidade
 		if board.valid_moves(self.color).__len__() < 6:
-			depth = 6
+			depth = 2
+			# depth = 6
 
 		# se houver poucas casas vazias, explora a arvore toda
 		if empty_squares < 13:
