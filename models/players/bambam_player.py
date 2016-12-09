@@ -1,15 +1,14 @@
-class BestPlayer:
+class BambamPlayer:
 	def __init__(self, color):
 		self.color = color
 
 	def is_frontier_piece(self, board, i, j):
-		ans = False
+		ans = 0
 		# Olha todos os 8 vizinhos. Casas fora do tabuleiro sao preenchidas com o caractere '?'
 		for direction in board.DIRECTIONS:
 			ni, nj = i+direction[0], j+direction[1]
 			if board[ni][nj] == board.EMPTY:
-				ans = True
-				break
+				ans += 1
 		return ans
 
 	def frontier(self, board, player):
@@ -21,7 +20,7 @@ class BestPlayer:
 					player_frontier += self.is_frontier_piece(board, i, j)
 				if board[i][j] == opponent:
 					opponent_frontier += self.is_frontier_piece(board, i, j)
-		return player, opponent
+		return player_frontier, opponent_frontier
 
 	def get_directions(self, board, corner):
 		if corner == [1,1]:
@@ -109,28 +108,6 @@ class BestPlayer:
 			opponent_stable += opponent_aux
 		return player_stable, opponent_stable
 
-	# def play(self, board):
-	# 	valid_moves = board.valid_moves(self.color)
-
-	# 	# Testando funcao stable_pieces():
-	# 	# player_stable, opponent_stable = self.stable_pieces(board)
-	# 	print self.stable_pieces(board)
-
-	# 	# Player apenas chamado tendo lista com pelo menos um elemento
-	# 	choosen_move = valid_moves[0]
-	# 	maxi = -1
-
-	# 	for move in valid_moves:
-	# 		test_board = board.get_clone()
-	# 		test_board.play(move, self.color)
-	# 		player_frontier, opponent_frontier = self.frontier(board)
-
-	# 		if opponent_frontier - player_frontier > maxi:
-	# 			maxi = opponent_frontier - player_frontier
-	# 			choosen_move = move
-
-	# 	return choosen_move
-
 
 	def evaluate_board(self, board, player):
 		a = -20
@@ -163,12 +140,17 @@ class BestPlayer:
 				if board[i][j] == opponent:
 					board_score -= evaluation[i][j]
 
+		# print "board_score:", board_score
+
 		player_frontier, opponent_frontier = self.frontier(board, player)
-		board_score += (player_frontier - opponent_frontier) * 11
+		board_score += (opponent_frontier - player_frontier) * 11
+
+		# print "frontier:", player_frontier,  opponent_frontier
 
 		player_stable, opponent_stable = self.stable_pieces(board, player)
 		board_score += (player_stable - opponent_stable) * 33
 
+		# print "stable_pieces:", player_stable, opponent_stable
 
 		return board_score
 

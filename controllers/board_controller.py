@@ -27,7 +27,7 @@ class BoardController:
     while finish_game != 2:
       raw_input("")
       atual_color = self.atual_player.color
-      print 'Jogador: ' + atual_color
+      print 'Jogador ' + self.atual_player.__class__.__name__ + ': ' + atual_color
       # print self.board.valid_moves(atual_color).__len__()
       # print self.atual_player.stable_pieces(self.board)
       if self.board.valid_moves(atual_color).__len__() > 0:

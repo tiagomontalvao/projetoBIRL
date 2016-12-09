@@ -1,3 +1,5 @@
+# http://dhconnelly.com/paip-python/docs/paip/othello.html
+
 class AlphaBetaPlayer:
 	def __init__(self, color):
 		self.color = color
