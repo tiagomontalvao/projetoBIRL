@@ -1,6 +1,9 @@
+import timeit
+
 class BambamPlayer:
 	def __init__(self, color):
 		self.color = color
+		self.times = []
 
 	# Retorna 1 se todos ha alguma casa adjacente vazia e 0 caso contrario
 	def is_frontier_piece(self, board, i, j):
@@ -172,12 +175,8 @@ class BambamPlayer:
 
 	# Retorna um par [player_stable, opponent_stable] indicando
 	# quntas pecas estaveis cada player possui
-	def stable_pieces(self, board, player):
+	def stable_pieces(self, board, player, is_stable):
 		player_stable, opponent_stable = 0, 0
-		is_stable = [[True]*10 for _ in xrange(10)]
-		for i in range(1,9):
-			for j in range(1,9):
-				is_stable[i][j] = False
 		corners = [[1,1], [1,8], [8,1], [8,8]]
 		for corner in corners:
 			player_aux, opponent_aux = self.count_stable(board, player, corner, is_stable)
@@ -214,8 +213,24 @@ class BambamPlayer:
 		# pega oponente de player
 		opponent = board._opponent(player)
 
+		is_stable = [[False]*10 for _ in xrange(10)]
+		for i in range(10):
+			is_stable[i][0] = is_stable[i][9] = True
+		for j in range(10):
+			is_stable[0][j] = is_stable[9][j] = True
+
 		# calcula score de acordo com a matriz de pesos
 		board_score = 0
+
+		# atribui pesos para as pecas estaveis
+		player_stable, opponent_stable = self.stable_pieces(board, player, is_stable)
+		board_score += (player_stable - opponent_stable) * 33
+
+		# atribui pesos para as pecas de fronteira
+		player_frontier, opponent_frontier = self.frontier(board, player)
+		board_score += (opponent_frontier - player_frontier) * 11
+
+		# TROCAR: dar pesos de acordo com o valor em is_stable
 		for i in range(1, 9):
 			for j in range(1, 9):
 				if board[i][j] == player:
@@ -223,15 +238,43 @@ class BambamPlayer:
 				if board[i][j] == opponent:
 					board_score -= evaluation[i][j]
 
-		# atribui pesos para as pecas de fronteira
-		player_frontier, opponent_frontier = self.frontier(board, player)
-		board_score += (opponent_frontier - player_frontier) * 11
 
-		# atribui pesos para as pecas estaveis
-		player_stable, opponent_stable = self.stable_pieces(board, player)
-		board_score += (player_stable - opponent_stable) * 33
 
 		return board_score
+
+	# Funcao que faz um movimento em board e retorna lista de pecas viradas
+	def make_move(self, board, move, color):
+		lista = []
+		if (color == board.BLACK) or (color == board.WHITE):
+			board.board[move.x][move.y] = color
+			lista = self._reverse(board, move, color)
+		return lista
+
+	# Funcoes auxiliares para make_move
+	def _reverse(self, board, move, color):
+		lista = []
+		for direction in board.DIRECTIONS:
+			lista.extend(self._make_flips(board, move, color, direction))
+		return lista
+
+	def _make_flips(self, board, move, color, direction):
+		bracket = board._find_bracket(move, color, direction)
+		if not bracket:
+			return []
+		square = [move.x + direction[0], move.y + direction[1]]
+		lista = []
+		while square != bracket:
+			board.board[square[0]][square[1]] = color
+			lista.append(square)
+			square = [square[0] + direction[0], square[1] + direction[1]]
+		return lista
+
+	# Recebe movimento e lista de posicoes flipadas e troca
+	def undo_move(self, board, move, flips):
+		board.board[move.x][move.y] = board.EMPTY
+		for flip in flips:
+			flip_color = board._opponent(board.board[flip[0]][flip[1]])
+			board.board[flip[0]][flip[1]] = flip_color
 
 	# Funcao chamada quando jogo acabou
 	# Retorna inf se player ganhou, -inf se player perdeu ou 0 em caso de empate
@@ -278,11 +321,12 @@ class BambamPlayer:
 			# corte alpha-beta
 			if alpha >= beta:
 				break
-			# clona board e faz jogada neste novo tabuleiro
-			test_board = board.get_clone()
-			test_board.play(move, player)
+			# faz o movimento no mesmo tabuleiro
+			flips = self.make_move(board, move, player)
 			# expande a arvore de busca
-			val = -self.alphabeta(opponent, test_board, -beta, -alpha, depth-1)[0]
+			val = -self.alphabeta(opponent, board, -beta, -alpha, depth-1)[0]
+			# desfaz o movimento no tabuleiro
+			self.undo_move(board, move, flips)
 			# atualiza melhor jogada se for o caso
 			if val > alpha:
 				alpha = val
@@ -293,8 +337,12 @@ class BambamPlayer:
 	import random
 
 	def play(self, board):
-		
-		print self.stable_pieces(board, self.color)
+
+		is_stable = [[True]*10 for _ in xrange(10)]
+		for i in range(1,9):
+			for j in range(1,9):
+				is_stable[i][j] = False
+		print self.stable_pieces(board, self.color, is_stable)
 
 		# calcula quantidade de casas vazias
 		score = board.score()
@@ -305,21 +353,28 @@ class BambamPlayer:
 			return self.random.choice(board.valid_moves(self.color))
 
 		# inicializa profundidade padrao de 4 niveis
-		depth = 2
-		# depth = 4
+		depth = 4
+
+		valid_moves = board.valid_moves(self.color)
+
+		if valid_moves.__len__() == 1:
+			return valid_moves[0]
 
 		# se houver poucos movimentos, aumenta a profundidade
-		if board.valid_moves(self.color).__len__() < 6:
-			depth = 2
-			# depth = 6
+		if valid_moves.__len__() < 6:
+			depth = 6
 
 		# se houver poucas casas vazias, explora a arvore toda
-		if empty_squares < 13:
-			# print "AGORA"
+		if empty_squares < 12:
 			depth = 20
 
 		# faz o movimento
+		start_time = timeit.default_timer()
 		move = self.alphabeta(self.color, board, float('-inf'), float('inf'), depth)
+		elapsed = timeit.default_timer() - start_time
+		self.times.append(elapsed)
+		print 'now:', elapsed, 'seconds'
+		print 'avg:', sum(self.times)/len(self.times), 'seconds'
 
 		# se vitoria estiver garantida, manda mensagens ofensivas hehe
 		if move[0] == float('inf'):
