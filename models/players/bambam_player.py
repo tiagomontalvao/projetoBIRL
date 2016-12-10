@@ -231,12 +231,12 @@ class BambamPlayer:
 			for j in range(1, 9):
 				if board[i][j] == player:
 					if is_stable[i][j]:
-						board_score += 151 - int(abs(4.5 - 1) + abs(4.5 - 1)**2.37)
+						board_score += 151 - int(abs(4.5 - i) + abs(4.5 - j)**2.37)
 					else:
 						board_score += evaluation[i][j]
 				if board[i][j] == opponent:
 					if is_stable[i][j]:
-						board_score -= 151 - int(abs(4.5 - 1) + abs(4.5 - 1)**2.37)
+						board_score -= 151 - int(abs(4.5 - i) + abs(4.5 - j)**2.37)
 					else:
 						board_score -= evaluation[i][j]
 
