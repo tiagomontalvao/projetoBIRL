@@ -4,6 +4,11 @@ class BambamPlayer:
 	def __init__(self, color):
 		self.color = color
 		self.times = []
+		self.victory_messages = ['ate a proxima, loser', 'BIRL', 'eh verao o ano todo',
+								 'ajuda o maluco ta doente', 'eh ele que a gente quer',
+								  'boraaaa, hora do show p***a', 'sai de casa, comi pra c***lho',
+								  'ta saindo da jaula o monstro', 'nao vai dar nao',
+								  'que nao vai dar o que']
 
 	# Retorna 1 se todos ha alguma casa adjacente vazia e 0 caso contrario
 	def is_frontier_piece(self, board, i, j):
@@ -231,12 +236,12 @@ class BambamPlayer:
 			for j in range(1, 9):
 				if board[i][j] == player:
 					if is_stable[i][j]:
-						board_score += 151 - int(abs(4.5 - i) + abs(4.5 - j)**2.37)
+						board_score += 151 - int((abs(4.5 - i) + abs(4.5 - j))**2.37)
 					else:
 						board_score += evaluation[i][j]
 				if board[i][j] == opponent:
 					if is_stable[i][j]:
-						board_score -= 151 - int(abs(4.5 - i) + abs(4.5 - j)**2.37)
+						board_score -= 151 - int((abs(4.5 - i) + abs(4.5 - j))**2.37)
 					else:
 						board_score -= evaluation[i][j]
 
@@ -340,6 +345,8 @@ class BambamPlayer:
 
 	def play(self, board):
 
+		# RETIRAR NA VERSAO FINAL
+		# pedaco de codigo apenas para debug
 		is_stable = [[True]*10 for _ in xrange(10)]
 		for i in range(1,9):
 			for j in range(1,9):
@@ -379,9 +386,12 @@ class BambamPlayer:
 		print 'avg:', sum(self.times)/len(self.times), 'seconds'
 
 		# se vitoria estiver garantida, manda mensagens ofensivas hehe
-		if move[0] == float('inf'):
-			print "ate a prox, loser"
+		if empty_squares < 12 and move[0] == float('inf'):
+			# print "ate a prox, loser"
+			print self.random.choice(self.victory_messages)
 
+		# RETIRAR NA VERSAO FINAL
+		# valor do melhor movimento
 		print move[0]
 
 		return move[1]
