@@ -196,9 +196,6 @@ class BambamPlayer:
 		h = 20
 		i = -40
 
-		# TROCAR:
-		# calcular pecas estaveis antes e dar pesos dinamicamente para a matriz
-
 		# matriz de pesos
 		evaluation = [[0, 0, 0, 0, 0, 0, 0, 0, 0],
 					  [0, g, a, h, b, b, h, a, g],
@@ -230,13 +227,18 @@ class BambamPlayer:
 		player_frontier, opponent_frontier = self.frontier(board, player)
 		board_score += (opponent_frontier - player_frontier) * 11
 
-		# TROCAR: dar pesos de acordo com o valor em is_stable
 		for i in range(1, 9):
 			for j in range(1, 9):
 				if board[i][j] == player:
-					board_score += evaluation[i][j]
+					if is_stable[i][j]:
+						board_score += 151 - int(abs(4.5 - 1) + abs(4.5 - 1)**2.37)
+					else:
+						board_score += evaluation[i][j]
 				if board[i][j] == opponent:
-					board_score -= evaluation[i][j]
+					if is_stable[i][j]:
+						board_score -= 151 - int(abs(4.5 - 1) + abs(4.5 - 1)**2.37)
+					else:
+						board_score -= evaluation[i][j]
 
 
 
@@ -303,7 +305,7 @@ class BambamPlayer:
 		if depth == 0:
 			return self.evaluate_board(board, player), None
 
-		# pega oponente e lista de movimentos validos de player 
+		# pega oponente e lista de movimentos validos de player
 		opponent = board._opponent(player)
 		valid_moves = board.valid_moves(player)
 
@@ -381,6 +383,5 @@ class BambamPlayer:
 			print "ate a prox, loser"
 
 		print move[0]
-		
-		return move[1]
 
+		return move[1]
