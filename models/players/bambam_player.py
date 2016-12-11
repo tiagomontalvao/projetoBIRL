@@ -1,14 +1,15 @@
 import timeit
 
-class BambamPlayer:
+class Bambam:
 	def __init__(self, color):
 		self.color = color
 		self.times = []
-		self.victory_messages = ['ate a proxima, loser', 'BIRL', 'eh verao o ano todo',
-								 'ajuda o maluco ta doente', 'eh ele que a gente quer',
-								  'boraaaa, hora do show p***a', 'sai de casa, comi pra c***lho',
-								  'ta saindo da jaula o monstro', 'nao vai dar nao',
-								  'que nao vai dar o que']
+		self.victory_messages = ['BIRL', 'eh verao o ano todo', 'ajuda o maluco ta doente'
+								 'eh ele que a gente quer', 'boraaaa, hora do show p***a',
+								 'sai de casa, comi pra c***lho', 'ta saindo da jaula o monstro',
+								 'nao vai dar nao', 'que nao vai dar o que']
+		# CODIGO PARA TESTE
+		self.debug = False
 
 	# Retorna 1 se todos ha alguma casa adjacente vazia e 0 caso contrario
 	def is_frontier_piece(self, board, i, j):
@@ -228,24 +229,38 @@ class BambamPlayer:
 		player_stable, opponent_stable = self.stable_pieces(board, player, is_stable)
 		board_score += (player_stable - opponent_stable) * 33
 
-		# atribui pesos para as pecas de fronteira
-		player_frontier, opponent_frontier = self.frontier(board, player)
-		board_score += (opponent_frontier - player_frontier) * 11
+		aux = board_score
 
 		for i in range(1, 9):
 			for j in range(1, 9):
 				if board[i][j] == player:
 					if is_stable[i][j]:
-						board_score += 151 - int((abs(4.5 - i) + abs(4.5 - j))**2.37)
+						board_score += 151 - (abs(4.5 - i) + abs(4.5 - j))**2.37
 					else:
 						board_score += evaluation[i][j]
 				if board[i][j] == opponent:
 					if is_stable[i][j]:
-						board_score -= 151 - int((abs(4.5 - i) + abs(4.5 - j))**2.37)
+						board_score -= 151 - (abs(4.5 - i) + abs(4.5 - j))**2.37
 					else:
 						board_score -= evaluation[i][j]
 
+		aux = board_score - aux
 
+		# atribui pesos para as pecas de fronteira
+		player_frontier, opponent_frontier = self.frontier(board, player)
+		frontier_aux = (opponent_frontier - player_frontier) * 11
+		# frontier_aux = (opponent_frontier - player_frontier) * aux/2
+		if frontier_aux < board_score:
+			board_score += frontier_aux
+
+		# CODIGO PARA TESTE
+		if self.debug:
+			print 'stable:', player_stable, opponent_stable
+			print 'frontier:', player_frontier, opponent_frontier
+			print 'stable_score:', (player_stable - opponent_stable) * 33
+			print 'frontier_score:', frontier_aux
+			print 'matrix:', aux
+			print 'board_score:', board_score
 
 		return board_score
 
@@ -345,13 +360,15 @@ class BambamPlayer:
 
 	def play(self, board):
 
-		# RETIRAR NA VERSAO FINAL
-		# pedaco de codigo apenas para debug
-		is_stable = [[True]*10 for _ in xrange(10)]
-		for i in range(1,9):
-			for j in range(1,9):
-				is_stable[i][j] = False
-		print self.stable_pieces(board, self.color, is_stable)
+		# CODIGO PARA TESTE
+		is_stable = [[False]*10 for _ in xrange(10)]
+		for i in range(10):
+			is_stable[i][0] = is_stable[i][9] = True
+		for j in range(10):
+			is_stable[0][j] = is_stable[9][j] = True
+		self.debug = True
+		self.evaluate_board(board, self.color)
+		self.debug = False
 
 		# calcula quantidade de casas vazias
 		score = board.score()
@@ -387,7 +404,6 @@ class BambamPlayer:
 
 		# se vitoria estiver garantida, manda mensagens ofensivas hehe
 		if empty_squares < 12 and move[0] == float('inf'):
-			# print "ate a prox, loser"
 			print self.random.choice(self.victory_messages)
 
 		# RETIRAR NA VERSAO FINAL
