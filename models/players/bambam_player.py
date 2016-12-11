@@ -2,6 +2,7 @@ import timeit
 
 class Bambam:
 	def __init__(self, color):
+		self.tle = 10
 		self.color = color
 		self.times = []
 		self.victory_messages = ['BIRL', 'eh verao o ano todo', 'ajuda o maluco ta doente'
@@ -319,8 +320,7 @@ class Bambam:
 		return return_value
 
 	# Minimax com corte alpha-beta
-	def alphabeta(self, player, board, alpha, beta, depth):
-
+	def alphabeta(self, player, board, alpha, beta, depth, start_time):
 		# se profundidade limite foi atingida, retorna avaliacao do tabuleiro
 		if depth == 0:
 			return self.evaluate_board(board, player), None
@@ -335,7 +335,7 @@ class Bambam:
 			if not board.valid_moves(opponent):
 				return self.final_value(board, player), None
 			# ... mas o oponente tem, passa a jogada
-			return -self.alphabeta(opponent, board, -beta, -alpha, depth-1)[0], None
+			return -self.alphabeta(opponent, board, -beta, -alpha, depth-1, start_time)[0], None
 
 		# olha cada movimento
 		best_move = valid_moves[0]
@@ -343,10 +343,15 @@ class Bambam:
 			# corte alpha-beta
 			if alpha >= beta:
 				break
+
+			# so faz jogada se tiver tempo
+			if timeit.default_timer() - start_time > self.tle:
+				return alpha, best_move
+
 			# faz o movimento no mesmo tabuleiro
 			flips = self.make_move(board, move, player)
 			# expande a arvore de busca
-			val = -self.alphabeta(opponent, board, -beta, -alpha, depth-1)[0]
+			val = -self.alphabeta(opponent, board, -beta, -alpha, depth-1, start_time)[0]
 			# desfaz o movimento no tabuleiro
 			self.undo_move(board, move, flips)
 			# atualiza melhor jogada se for o caso
@@ -396,7 +401,8 @@ class Bambam:
 
 		# faz o movimento
 		start_time = timeit.default_timer()
-		move = self.alphabeta(self.color, board, float('-inf'), float('inf'), depth)
+		self.best_move_backup = valid_moves[0]
+		move = self.alphabeta(self.color, board, float('-inf'), float('inf'), depth, start_time)
 		elapsed = timeit.default_timer() - start_time
 		self.times.append(elapsed)
 		print 'now:', elapsed, 'seconds'
