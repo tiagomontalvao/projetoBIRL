@@ -199,26 +199,28 @@ class Bambam:
 
 	# Funcao de avaliacao do tabuleiro
 	def evaluate_board(self, board, player):
-		a = -20
-		b = 5
-		c = -5
-		d = 15
-		e = 3
-		f = 2
-		g = 120
-		h = 20
-		i = -40
+		
+		# matriz de pesos com menos de 21 pecas
+		evaluation0 = [[0,   0,   0,   0,   0,   0,   0,   0,   0],
+					   [0, 150, -20,  35,  15,  15,  35, -20, 150],
+					   [0, -20, -50, -10, -10, -10, -10, -50, -20],
+					   [0,  35, -10,  15,   3,   3,  15, -10,  35],
+					   [0,  15, -10,   3,   2,   2,   3, -10,  15],
+					   [0,  15, -10,   3,   2,   2,   3, -10,  15],
+					   [0,  35, -10,  15,   3,   3,  15, -10,  35],
+					   [0, -20, -50, -10, -10, -10, -10, -50, -20],
+					   [0, 150, -20,  35,  15,  15,  35, -20, 150]]
 
-		# matriz de pesos
-		evaluation = [[0, 0, 0, 0, 0, 0, 0, 0, 0],
-					  [0, g, a, h, b, b, h, a, g],
-					  [0, a, i, c, c, c, c, i, a],
-					  [0, h, c, d, e, e, d, c, h],
-					  [0, b, c, e, f, f, e, c, b],
-					  [0, b, c, e, f, f, e, c, b],
-					  [0, h, c, d, e, e, d, c, h],
-					  [0, a, i, c, c, c, c, i, a],
-					  [0, g, a, h, b, b, h, a, g]]
+		# matriz de pesos com mais de 20 pecas
+		evaluation1 = [[0,   0,   0,   0,   0,   0,   0,   0,   0],
+					   [0, 120, -20,  20,   5,   5,  20, -20, 120],
+					   [0, -20, -40,  -5,  -5,  -5,  -5, -40, -20],
+					   [0,  20,  -5,  15,   3,   3,  15,  -5,  20],
+					   [0,   5,  -5,   3,   2,   2,   3,  -5,   5],
+					   [0,   5,  -5,   3,   2,   2,   3,  -5,   5],
+					   [0,  20,  -5,  15,   3,   3,  15,  -5,  20],
+					   [0, -20, -40,  -5,  -5,  -5,  -5, -40, -20],
+					   [0, 120, -20,  20,   5,   5,  20, -20, 120]]
 
 		# pega oponente de player
 		opponent = board._opponent(player)
@@ -237,23 +239,30 @@ class Bambam:
 		board_score += (player_stable - opponent_stable) * 33
 
 		# variaveis auxiliares
-		player_score = 0
+		player_score, opponent_score = board.score()
+		if player == board.BLACK:
+			player_score, opponent_score = opponent_score, player_score
 		aux = board_score
 
 		# atualiza score de acordo com cada peca e sua respectiva posicao
 		for i in range(1, 9):
 			for j in range(1, 9):
 				if board[i][j] == player:
-					player_score += 1
 					if is_stable[i][j]:
 						board_score += 151 - (abs(4.5 - i) + abs(4.5 - j))**2.37
 					else:
-						board_score += evaluation[i][j]
+						if player_score + opponent_score <= 20:
+							board_score += evaluation0[i][j]
+						else:
+							board_score += evaluation1[i][j]
 				if board[i][j] == opponent:
 					if is_stable[i][j]:
 						board_score -= 151 - (abs(4.5 - i) + abs(4.5 - j))**2.37
 					else:
-						board_score -= evaluation[i][j]
+						if player_score + opponent_score <= 20:
+							board_score -= evaluation0[i][j]
+						else:
+							board_score -= evaluation1[i][j]
 
 		# se player nao tiver pecas, entao perdeu o jogo
 		if player_score == 0:
