@@ -2,10 +2,15 @@ import timeit
 
 class Bambam:
 	def __init__(self, color):
-		self.time_limit = 15
+		# tempo limite da jogada
+		self.time_limit = 20
+		# cor do bambam
 		self.color = color
+		# lista de tempos de cada jogada
 		self.times = []
+		# transposition table para armazenar jogadas ja calculadas
 		self.transposition_table = {}
+		# lista de falas do bambam
 		self.victory_messages = ['BIRL', 'eh verao o ano todo', 'ajuda o maluco ta doente',
 								 'eh ele que a gente quer', 'boraaaa, hora do show p***a',
 								 'sai de casa, comi pra c***lho', 'ta saindo da jaula o monstro',
@@ -231,9 +236,11 @@ class Bambam:
 		player_stable, opponent_stable = self.stable_pieces(board, player, is_stable)
 		board_score += (player_stable - opponent_stable) * 33
 
+		# variaveis auxiliares
 		player_score = 0
 		aux = board_score
 
+		# atualiza score de acordo com cada peca e sua respectiva posicao
 		for i in range(1, 9):
 			for j in range(1, 9):
 				if board[i][j] == player:
@@ -252,23 +259,26 @@ class Bambam:
 		if player_score == 0:
 			return float('-inf')
 
+		# para debug
 		aux = board_score - aux
 
 		# atribui pesos para as pecas de fronteira
 		player_frontier, opponent_frontier = self.frontier(board, player)
 		frontier_aux = (opponent_frontier - player_frontier) * 11
-		# frontier_aux = (opponent_frontier - player_frontier) * aux/2
 		if frontier_aux < board_score:
 			board_score += frontier_aux
 
 		# CODIGO PARA TESTE
+		# valores importantes do tabuleiro
+		# self.debug = True
 		if self.debug:
 			print 'stable:', player_stable, opponent_stable
 			print 'frontier:', player_frontier, opponent_frontier
 			print 'stable_score:', (player_stable - opponent_stable) * 33
 			print 'frontier_score:', frontier_aux
-			print 'matrix:', aux
+			print 'matrix_weights:', aux
 			print 'board_score:', board_score
+			self.debug = False
 
 		return board_score
 
@@ -299,7 +309,7 @@ class Bambam:
 			square = [square[0] + direction[0], square[1] + direction[1]]
 		return lista
 
-	# Recebe movimento e lista de posicoes flipadas e troca
+	# Recebe movimento e lista de posicoes flipadas e desfaz movimento
 	def undo_move(self, board, move, flips):
 		board.board[move.x][move.y] = board.EMPTY
 		for flip in flips:
@@ -327,10 +337,13 @@ class Bambam:
 		return return_value
 
 	# Negamax com corte alpha-beta
+	# Retorna um par [val, best_move], indicando o valor do melhor movimento e o melhor movimento
 	def alphabeta(self, board, player, alpha, beta, depth, start_time):
 
+		# tupla que armazena o estado para consulta na transposition table
 		state_tuple = (tuple(tuple(x) for x in board), player, depth)
 
+		# consulta a transposition table e retorna o valor se ja foi calculado
 		if state_tuple in self.transposition_table:
 			return self.transposition_table[state_tuple]
 
@@ -374,23 +387,28 @@ class Bambam:
 				alpha = val
 				best_move = move
 
+		# armazena o valor na transposition table
 		self.transposition_table[state_tuple] = (alpha, best_move)
 
 		return alpha, best_move
 
 	import random
 
+	# Funcao principal chamada pelo controller
+	# Retorna um move dentro de valid_moves
 	def play(self, board):
 
 		# CODIGO PARA TESTE
-		is_stable = [[False]*10 for _ in xrange(10)]
-		for i in range(10):
-			is_stable[i][0] = is_stable[i][9] = True
-		for j in range(10):
-			is_stable[0][j] = is_stable[9][j] = True
-		self.debug = True
-		self.evaluate_board(board, self.color)
-		self.debug = False
+		# valor do tabuleiro atual
+		# self.debug = True
+		if self.debug:
+			is_stable = [[False]*10 for _ in xrange(10)]
+			for i in range(10):
+				is_stable[i][0] = is_stable[i][9] = True
+			for j in range(10):
+				is_stable[0][j] = is_stable[9][j] = True
+			self.evaluate_board(board, self.color)
+			self.debug = False
 
 		# calcula quantidade de casas vazias
 		empty_squares = 64 - sum(board.score())
@@ -404,11 +422,16 @@ class Bambam:
 
 		valid_moves = board.valid_moves(self.color)
 
+		# se so houver uma jogada valida, nao precisa chamar alphabeta
 		if valid_moves.__len__() == 1:
-			start_time = timeit.default_timer()
-			elapsed = timeit.default_timer() - start_time
-			print 'now:', elapsed, 'seconds'
-			print 'avg:', sum(self.times)/len(self.times), 'seconds'
+			# self.debug = True
+			if self.debug:
+				start_time = timeit.default_timer()
+				elapsed = timeit.default_timer() - start_time
+				self.times.append(elapsed)
+				print 'now:', elapsed, 'seconds'
+				print 'avg:', sum(self.times)/len(self.times), 'seconds'
+				self.debug = False
 			return valid_moves[0]
 
 		# se houver poucos movimentos, aumenta a profundidade
@@ -419,21 +442,33 @@ class Bambam:
 		if empty_squares < 12:
 			depth = 20
 
-		# faz o movimento
+		# inicio da medida de tempo da jogada
 		start_time = timeit.default_timer()
-		self.best_move_backup = valid_moves[0]
+		
+		# faz o movimento
 		move = self.alphabeta(board, self.color, float('-inf'), float('inf'), depth, start_time)
+
+		# final da medida de tempo da jogada
 		elapsed = timeit.default_timer() - start_time
 		self.times.append(elapsed)
-		print 'now:', elapsed, 'seconds'
-		print 'avg:', sum(self.times)/len(self.times), 'seconds'
+
+		# CODIGO PARA TESTE
+		# medidas de tempo
+		# self.debug = True
+		if self.debug:
+			print 'now:', elapsed, 'seconds'
+			print 'avg:', sum(self.times)/len(self.times), 'seconds'
+			self.debug = False
 
 		# se vitoria estiver garantida, manda mensagens ofensivas hehe
 		if empty_squares < 12 and move[0] == float('inf'):
 			print self.random.choice(self.victory_messages)
 
-		# RETIRAR NA VERSAO FINAL
+		# CODIGO PARA TESTE
 		# valor do melhor movimento
-		print move[0]
+		# self.debug = True
+		if self.debug:
+			print move[0]
+			self.debug = False
 
 		return move[1]
