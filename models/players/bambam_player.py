@@ -2,10 +2,11 @@ import timeit
 
 class Bambam:
 	def __init__(self, color):
-		self.tle = 10
+		self.time_limit = 15
 		self.color = color
 		self.times = []
-		self.victory_messages = ['BIRL', 'eh verao o ano todo', 'ajuda o maluco ta doente'
+		self.transposition_table = {}
+		self.victory_messages = ['BIRL', 'eh verao o ano todo', 'ajuda o maluco ta doente',
 								 'eh ele que a gente quer', 'boraaaa, hora do show p***a',
 								 'sai de casa, comi pra c***lho', 'ta saindo da jaula o monstro',
 								 'nao vai dar nao', 'que nao vai dar o que']
@@ -230,11 +231,13 @@ class Bambam:
 		player_stable, opponent_stable = self.stable_pieces(board, player, is_stable)
 		board_score += (player_stable - opponent_stable) * 33
 
+		player_score = 0
 		aux = board_score
 
 		for i in range(1, 9):
 			for j in range(1, 9):
 				if board[i][j] == player:
+					player_score += 1
 					if is_stable[i][j]:
 						board_score += 151 - (abs(4.5 - i) + abs(4.5 - j))**2.37
 					else:
@@ -244,6 +247,10 @@ class Bambam:
 						board_score -= 151 - (abs(4.5 - i) + abs(4.5 - j))**2.37
 					else:
 						board_score -= evaluation[i][j]
+
+		# se player nao tiver pecas, entao perdeu o jogo
+		if player_score == 0:
+			return float('-inf')
 
 		aux = board_score - aux
 
@@ -319,11 +326,19 @@ class Bambam:
 
 		return return_value
 
-	# Minimax com corte alpha-beta
-	def alphabeta(self, player, board, alpha, beta, depth, start_time):
+	# Negamax com corte alpha-beta
+	def alphabeta(self, board, player, alpha, beta, depth, start_time):
+
+		state_tuple = (tuple(tuple(x) for x in board), player, depth)
+
+		if state_tuple in self.transposition_table:
+			return self.transposition_table[state_tuple]
+
 		# se profundidade limite foi atingida, retorna avaliacao do tabuleiro
 		if depth == 0:
-			return self.evaluate_board(board, player), None
+			ans = (self.evaluate_board(board, player), None)
+			self.transposition_table[state_tuple] = ans
+			return ans
 
 		# pega oponente e lista de movimentos validos de player
 		opponent = board._opponent(player)
@@ -335,7 +350,7 @@ class Bambam:
 			if not board.valid_moves(opponent):
 				return self.final_value(board, player), None
 			# ... mas o oponente tem, passa a jogada
-			return -self.alphabeta(opponent, board, -beta, -alpha, depth-1, start_time)[0], None
+			return -self.alphabeta(board, opponent, -beta, -alpha, depth-1, start_time)[0], None
 
 		# olha cada movimento
 		best_move = valid_moves[0]
@@ -345,19 +360,21 @@ class Bambam:
 				break
 
 			# so faz jogada se tiver tempo
-			if timeit.default_timer() - start_time > self.tle:
+			if timeit.default_timer() - start_time > self.time_limit:
 				return alpha, best_move
 
 			# faz o movimento no mesmo tabuleiro
 			flips = self.make_move(board, move, player)
 			# expande a arvore de busca
-			val = -self.alphabeta(opponent, board, -beta, -alpha, depth-1, start_time)[0]
+			val = -self.alphabeta(board, opponent, -beta, -alpha, depth-1, start_time)[0]
 			# desfaz o movimento no tabuleiro
 			self.undo_move(board, move, flips)
 			# atualiza melhor jogada se for o caso
 			if val > alpha:
 				alpha = val
 				best_move = move
+
+		self.transposition_table[state_tuple] = (alpha, best_move)
 
 		return alpha, best_move
 
@@ -376,8 +393,7 @@ class Bambam:
 		self.debug = False
 
 		# calcula quantidade de casas vazias
-		score = board.score()
-		empty_squares = 64 - sum(score)
+		empty_squares = 64 - sum(board.score())
 
 		# na primeira jogada faz jogada qualquer
 		if empty_squares == 60:
@@ -389,6 +405,10 @@ class Bambam:
 		valid_moves = board.valid_moves(self.color)
 
 		if valid_moves.__len__() == 1:
+			start_time = timeit.default_timer()
+			elapsed = timeit.default_timer() - start_time
+			print 'now:', elapsed, 'seconds'
+			print 'avg:', sum(self.times)/len(self.times), 'seconds'
 			return valid_moves[0]
 
 		# se houver poucos movimentos, aumenta a profundidade
@@ -402,7 +422,7 @@ class Bambam:
 		# faz o movimento
 		start_time = timeit.default_timer()
 		self.best_move_backup = valid_moves[0]
-		move = self.alphabeta(self.color, board, float('-inf'), float('inf'), depth, start_time)
+		move = self.alphabeta(board, self.color, float('-inf'), float('inf'), depth, start_time)
 		elapsed = timeit.default_timer() - start_time
 		self.times.append(elapsed)
 		print 'now:', elapsed, 'seconds'
