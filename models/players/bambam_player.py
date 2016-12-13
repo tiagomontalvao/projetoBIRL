@@ -3,7 +3,7 @@ import timeit
 class Bambam:
 	def __init__(self, color):
 		# tempo limite da jogada
-		self.time_limit = 20
+		self.time_limit = 30
 		# cor do bambam
 		self.color = color
 		# lista de tempos de cada jogada
@@ -199,17 +199,17 @@ class Bambam:
 
 	# Funcao de avaliacao do tabuleiro
 	def evaluate_board(self, board, player):
-		
+
 		# matriz de pesos com menos de 21 pecas
 		evaluation0 = [[0,   0,   0,   0,   0,   0,   0,   0,   0],
-					   [0, 150, -20,  35,  15,  15,  35, -20, 150],
+					   [0, 150, -20,  33,  20,  20,  33, -20, 150],
 					   [0, -20, -50, -10, -10, -10, -10, -50, -20],
-					   [0,  35, -10,  15,   3,   3,  15, -10,  35],
-					   [0,  15, -10,   3,   2,   2,   3, -10,  15],
-					   [0,  15, -10,   3,   2,   2,   3, -10,  15],
-					   [0,  35, -10,  15,   3,   3,  15, -10,  35],
+					   [0,  33, -10,  20,   3,   3,  20, -10,  33],
+					   [0,  20, -10,   3,   2,   2,   3, -10,  20],
+					   [0,  20, -10,   3,   2,   2,   3, -10,  20],
+					   [0,  33, -10,  20,   3,   3,  20, -10,  33],
 					   [0, -20, -50, -10, -10, -10, -10, -50, -20],
-					   [0, 150, -20,  35,  15,  15,  35, -20, 150]]
+					   [0, 150, -20,  33,  20,  20,  33, -20, 150]]
 
 		# matriz de pesos com mais de 20 pecas
 		evaluation1 = [[0,   0,   0,   0,   0,   0,   0,   0,   0],
@@ -327,7 +327,7 @@ class Bambam:
 
 	# Funcao chamada quando jogo acabou
 	# Retorna inf se player ganhou, -inf se player perdeu ou 0 em caso de empate
-	def final_value(self, board, player):
+	def final_score(self, board, player):
 		white_score, black_score = board.score()
 
 		# calcula vantagem do player sobre o oponente
@@ -368,9 +368,9 @@ class Bambam:
 
 		# se nao tiver movimentos validos...
 		if not valid_moves:
-			# ... e nem o oponente, entao jogo acabou e eh retornado o valor de final_value
+			# ... e nem o oponente, entao jogo acabou e eh retornado o valor de final_score
 			if not board.valid_moves(opponent):
-				return self.final_value(board, player), None
+				return self.final_score(board, player), None
 			# ... mas o oponente tem, passa a jogada
 			return -self.alphabeta(board, opponent, -beta, -alpha, depth-1, start_time)[0], None
 
@@ -388,12 +388,12 @@ class Bambam:
 			# faz o movimento no mesmo tabuleiro
 			flips = self.make_move(board, move, player)
 			# expande a arvore de busca
-			val = -self.alphabeta(board, opponent, -beta, -alpha, depth-1, start_time)[0]
+			move_score = -self.alphabeta(board, opponent, -beta, -alpha, depth-1, start_time)[0]
 			# desfaz o movimento no tabuleiro
 			self.undo_move(board, move, flips)
 			# atualiza melhor jogada se for o caso
-			if val > alpha:
-				alpha = val
+			if alpha < move_score:
+				alpha = move_score
 				best_move = move
 
 		# armazena o valor na transposition table
@@ -427,7 +427,7 @@ class Bambam:
 			return self.random.choice(board.valid_moves(self.color))
 
 		# inicializa profundidade padrao de 4 niveis
-		depth = 4
+		depth = 5
 
 		valid_moves = board.valid_moves(self.color)
 
@@ -435,8 +435,6 @@ class Bambam:
 		if valid_moves.__len__() == 1:
 			# self.debug = True
 			if self.debug:
-				start_time = timeit.default_timer()
-				elapsed = timeit.default_timer() - start_time
 				self.times.append(elapsed)
 				print 'now:', elapsed, 'seconds'
 				print 'avg:', sum(self.times)/len(self.times), 'seconds'
@@ -445,7 +443,7 @@ class Bambam:
 
 		# se houver poucos movimentos, aumenta a profundidade
 		if valid_moves.__len__() < 6:
-			depth = 6
+			depth = 7
 
 		# se houver poucas casas vazias, explora a arvore toda
 		if empty_squares < 12:
@@ -466,7 +464,7 @@ class Bambam:
 		# self.debug = True
 		if self.debug:
 			print 'now:', elapsed, 'seconds'
-			print 'avg:', sum(self.times)/len(self.times), 'seconds'
+			# print 'avg:', sum(self.times)/len(self.times), 'seconds'
 			self.debug = False
 
 		# se vitoria estiver garantida, manda mensagens ofensivas hehe

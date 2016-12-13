@@ -1,4 +1,4 @@
-class GreedyPlayer:
+class FelipeFranco:
 	def __init__(self, color):
 		self.color = color
 
