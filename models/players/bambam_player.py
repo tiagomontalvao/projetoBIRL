@@ -267,6 +267,8 @@ class Bambam:
 		# se player nao tiver pecas, entao perdeu o jogo
 		if player_score == 0:
 			return float('-inf')
+		if opponent_score == 0:
+			return float('inf')
 
 		# para debug
 		aux = board_score - aux
@@ -339,9 +341,9 @@ class Bambam:
 
 		# transforma valor em inf, -inf ou 0
 		if return_value > 0:
-			return_value = float('inf')
+			return_value += 1000000000000
 		elif return_value < 0:
-			return_value = float('-inf')
+			return_value -= 1000000000000
 
 		return return_value
 
@@ -349,18 +351,30 @@ class Bambam:
 	# Retorna um par [val, best_move], indicando o valor do melhor movimento e o melhor movimento
 	def alphabeta(self, board, player, alpha, beta, depth, start_time):
 
+		alphaOrig = alpha
+
 		# tupla que armazena o estado para consulta na transposition table
-		state_tuple = (tuple(tuple(x) for x in board), player, depth)
+		state_tuple = tuple(tuple(x) for x in board)
+
+		EXACT, LOWERBOUND, UPPERBOUND = 0, 1, 2
 
 		# consulta a transposition table e retorna o valor se ja foi calculado
+		# transposition_table = (value, flag, depth, move)
 		if state_tuple in self.transposition_table:
-			return self.transposition_table[state_tuple]
+			ttEntry = self.transposition_table[state_tuple]
+			if ttEntry[2] >= depth:
+				if ttEntry[1] == EXACT:
+					return ttEntry[0], ttEntry[3]
+				elif ttEntry[1] == LOWERBOUND:
+					alpha = max(alpha, ttEntry[0])
+				elif ttEntry[1] == UPPERBOUND:
+					beta = min(beta, ttEntry[0])
+				if alpha >= beta:
+					return ttEntry[0], ttEntry[3]
 
 		# se profundidade limite foi atingida, retorna avaliacao do tabuleiro
 		if depth == 0:
-			ans = (self.evaluate_board(board, player), None)
-			self.transposition_table[state_tuple] = ans
-			return ans
+			return self.evaluate_board(board, player), None
 
 		# pega oponente e lista de movimentos validos de player
 		opponent = board._opponent(player)
@@ -375,12 +389,10 @@ class Bambam:
 			return -self.alphabeta(board, opponent, -beta, -alpha, depth-1, start_time)[0], None
 
 		# olha cada movimento
+		best_score = float('-inf')
 		best_move = valid_moves[0]
-		for move in valid_moves:
-			# corte alpha-beta
-			if alpha >= beta:
-				break
 
+		for move in valid_moves:
 			# so faz jogada se tiver tempo
 			if timeit.default_timer() - start_time > self.time_limit:
 				return alpha, best_move
@@ -392,14 +404,26 @@ class Bambam:
 			# desfaz o movimento no tabuleiro
 			self.undo_move(board, move, flips)
 			# atualiza melhor jogada se for o caso
-			if alpha < move_score:
-				alpha = move_score
+			if best_score < move_score:
+				best_score = move_score
 				best_move = move
 
-		# armazena o valor na transposition table
-		self.transposition_table[state_tuple] = (alpha, best_move)
+			alpha = max(alpha, move_score)
 
-		return alpha, best_move
+			# corte alpha-beta
+			if alpha >= beta:
+				break
+
+		flag = EXACT
+		if best_score <= alphaOrig:
+			flag = UPPERBOUND
+		elif best_score >= beta:
+			flag = LOWERBOUND
+
+		# armazena o valor na transposition table
+		self.transposition_table[state_tuple] = (best_score, flag, depth, best_move)
+
+		return best_score, best_move
 
 	import random
 
@@ -468,7 +492,7 @@ class Bambam:
 			self.debug = False
 
 		# se vitoria estiver garantida, manda mensagens ofensivas hehe
-		if empty_squares < 12 and move[0] == float('inf'):
+		if empty_squares < 12 and move[0] > 1000000000000:
 			print self.random.choice(self.victory_messages)
 
 		# CODIGO PARA TESTE
