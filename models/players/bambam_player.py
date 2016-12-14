@@ -65,7 +65,6 @@ class Bambam:
 		matriz[indice[0]][indice[1]] = valor
 
 	# Conta quantas pecas estaveis existem em torno de uma quina
-	# Ainda com um pequeno bug
 	def count_stable(self, board, player, corner, is_stable):
 		stable_return = [0, 0]
 
@@ -450,7 +449,7 @@ class Bambam:
 		if empty_squares == 60:
 			return self.random.choice(board.valid_moves(self.color))
 
-		# inicializa profundidade padrao de 4 niveis
+		# inicializa profundidade padrao de 5 niveis
 		depth = 5
 
 		valid_moves = board.valid_moves(self.color)

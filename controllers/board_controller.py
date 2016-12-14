@@ -10,6 +10,7 @@ class BoardController:
   def __init__(self):
     self.board = Board(None)
     self.view  = ConsoleBoardView(self.board)
+    self.moves = []
 
   def init_game(self):
 
@@ -31,7 +32,9 @@ class BoardController:
       # print self.board.valid_moves(atual_color).__len__()
       # print self.atual_player.stable_pieces(self.board)
       if self.board.valid_moves(atual_color).__len__() > 0:
-        self.board.play(self.atual_player.play(self.board.get_clone()), atual_color)
+        move = self.atual_player.play(self.board.get_clone())
+        self.moves.append([move.x, move.y])
+        self.board.play(move, atual_color)
         # os.system('clear')
         self.view.update_view()
         finish_game = 0
@@ -41,6 +44,7 @@ class BoardController:
       self.atual_player = self._opponent(self.atual_player)
 
     self._end_game()
+    print self.moves
 
 
   def _end_game(self):
