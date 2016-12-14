@@ -29,13 +29,22 @@ class BoardController:
       raw_input("")
       atual_color = self.atual_player.color
       print 'Jogador ' + self.atual_player.__class__.__name__ + ': ' + atual_color
-      # print self.board.valid_moves(atual_color).__len__()
-      # print self.atual_player.stable_pieces(self.board)
+      valid_moves = self.board.valid_moves(atual_color)
+      str_moves = '['
+      for i in range(len(valid_moves)):
+        if i == 0:
+          str_moves += '[{}, {}]'.format(valid_moves[i].x, valid_moves[i].y)
+        else:
+          str_moves += ', [{}, {}]'.format(valid_moves[i].x, valid_moves[i].y)
+      str_moves += ']' 
+      print len(valid_moves)
+      print str_moves
       if self.board.valid_moves(atual_color).__len__() > 0:
         move = self.atual_player.play(self.board.get_clone())
         self.moves.append([move.x, move.y])
         self.board.play(move, atual_color)
         # os.system('clear')
+        print '\nMovimento feito: [{}, {}]'.format(move.x, move.y)
         self.view.update_view()
         finish_game = 0
       else:
